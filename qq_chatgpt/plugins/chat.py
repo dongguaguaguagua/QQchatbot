@@ -71,11 +71,12 @@ async def send_msg(bot: Bot, event: Event, state: T_State):
 async def send_msg(bot: Bot, event: Event, state: T_State):
     id = event.get_user_id()
     questions = str(event.get_message()).replace('.chat', '')
-    default_config['openai']['prompt'] = default_config['context'] + f'Q:{questions}\nA:'
+    default_config['context'] += f'Q:{questions}\nA:'
+    default_config['openai']['prompt'] = default_config['context']
     response = openai.Completion.create(**default_config['openai'])
     response_text = response['choices'][0]['text'].strip()
     # msg = '[CQ:at,qq={}]'.format(id) + response_text
-    default_config['context'] += f'A:{response_text}\n\n'
+    default_config['context'] += f'{response_text}\n\n'
     print(default_config['context'])
     msg = response_text
     await catch_chat_str.finish(Message(f'{msg}'))
