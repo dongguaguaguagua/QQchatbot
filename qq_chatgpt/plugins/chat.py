@@ -3,9 +3,10 @@ from nonebot import on_keyword
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import Bot, Event
 import openai
+import os
 
 openai.organization = 'org-WvMRPik8NGGoWxdJf9QPwpkh'
-openai.api_key = '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'
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 catch_chat_str = on_keyword({'.chat'})
 catch_ask_str = on_keyword({'.ask'})
@@ -31,6 +32,10 @@ default_config = {
         # and 0 (argmax sampling) for ones with a well-defined answer.
         # We generally recommend altering this or top_p but not both.
         'temperature': 0.9,
+        # max_tokens is a parameter in the ChatGPT API that indicates the \
+        # maximum number of tokens (words) that should be generated \
+        # in the response. Increasing this number can make the response \
+        # longer and more detailed, but it can also make the model slower.
         # The maximum number of tokens to generate in the completion.
         'max_tokens': 1024,
         # # An alternative to sampling with temperature, called nucleus sampling,
@@ -57,21 +62,21 @@ default_config = {
 
 @catch_ask_str.handle()
 async def send_msg(bot: Bot, event: Event, state: T_State):
-    id = event.get_user_id()
+    # id = event.get_user_id()
     questions = str(event.get_message()).replace('.ask', '')
-    default_config['openai']['prompt'] = questions
+    default_config['openai']['prompt'] = f'Q:{questions}\nA: '
     response = openai.Completion.create(**default_config['openai'])
     response_text = response['choices'][0]['text'].strip()
     # msg = '[CQ:at,qq={}]'.format(id) + response_text
     msg = response_text
-    await catch_ask_str.finish(Message(f'{msg}'))
+    await catch_ask_str.finish(Message(msg))
 
 
 @catch_chat_str.handle()
 async def send_msg(bot: Bot, event: Event, state: T_State):
-    id = event.get_user_id()
+    # id = event.get_user_id()
     questions = str(event.get_message()).replace('.chat', '')
-    default_config['context'] += f'Q:{questions}\nA:'
+    default_config['context'] += f'Q:{questions}\nA: '
     default_config['openai']['prompt'] = default_config['context']
     response = openai.Completion.create(**default_config['openai'])
     response_text = response['choices'][0]['text'].strip()
@@ -79,12 +84,12 @@ async def send_msg(bot: Bot, event: Event, state: T_State):
     default_config['context'] += f'{response_text}\n\n'
     print(default_config['context'])
     msg = response_text
-    await catch_chat_str.finish(Message(f'{msg}'))
+    await catch_chat_str.finish(Message(msg))
 
 
 @catch_clear_str.handle()
 async def send_msg(bot: Bot, event: Event, state: T_State):
-    id = event.get_user_id()
+    # id = event.get_user_id()
     default_config['context'] = ''
     msg = 'cleared all contexts! 已清除所有上下文！'
-    await catch_clear_str.finish(Message(f'{msg}'))
+    await catch_clear_str.finish(Message(msg))
