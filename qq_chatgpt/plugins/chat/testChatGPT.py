@@ -6,7 +6,7 @@ openai.organization = "org-WvMRPik8NGGoWxdJf9QPwpkh"
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 response = openai.Completion.create(
-    model="code-davinci-002",
+    model="code-davinci-003",
     prompt=["""
 #include <stdio.h>
 
