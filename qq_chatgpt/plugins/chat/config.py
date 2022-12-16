@@ -4,7 +4,7 @@ default_config = {
     # 记录上下文
     "context": "",
     # Creates a completion for the provided prompt and parameters
-    "text_completion": {
+    "completion": {
         # ID of the model to use.
         # You can use the List models API to see all of your available models,
         # or see our Model overview for descriptions of them.
@@ -17,13 +17,13 @@ default_config = {
         # Try 0.9 for more creative applications,
         # and 0 (argmax sampling) for ones with a well-defined answer.
         # We generally recommend altering this or top_p but not both.
-        "temperature": 0.9,
+        "temperature": 0.0,
         # max_tokens is a parameter in the ChatGPT API that indicates the \
         # maximum number of tokens (words) that should be generated \
         # in the response. Increasing this number can make the response \
         # longer and more detailed, but it can also make the model slower.
         # The maximum number of tokens to generate in the completion.
-        "max_tokens": 1024,
+        "max_tokens": 4000,
         # # An alternative to sampling with temperature, called nucleus sampling,
         # # where the model considers the results of the tokens with top_p probability mass.
         # # So 0.1 means only the tokens comprising the top 10% probability mass are considered.
