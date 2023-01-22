@@ -88,10 +88,16 @@ async def group_chat_msg(gm: GroupMessageEvent, args: Message = CommandArg()):
     questions = args.extract_plain_text()
     local_config["context"] += f"\n\nQ: {questions}\nA: "
     local_config["completion"]["prompt"] = local_config["context"]
-    response = openai.Completion.create(**local_config["completion"])
-    response_text = response["choices"][0]["text"].strip()
-    local_config["context"] += response_text
-    msg = Message(f"[CQ:reply,id={msg_id}]{response_text}")
+    print(local_config["completion"]["prompt"])
+    try:
+        response = openai.Completion.create(**local_config["completion"])
+        response_text = response["choices"][0]["text"].strip()
+        local_config["context"] += response_text
+        msg = Message(f"[CQ:reply,id={msg_id}]{response_text}")
+    except openai.error.InvalidRequestError as e:
+        logger.opt(colors=True).critical(f"Tokens太长！已重置上下文。\n错误信息：{e}")
+        local_config["context"] = ""
+        msg = Message("Tokens Error Occured!")
     await catch_chat_str.finish(msg)
 
 
@@ -106,10 +112,16 @@ async def private_chat_msg(pm: PrivateMessageEvent, args: Message = CommandArg()
     questions = args.extract_plain_text()
     local_config["context"] += f"\n\nQ: {questions}\nA: "
     local_config["completion"]["prompt"] = local_config["context"]
-    response = openai.Completion.create(**local_config["completion"])
-    response_text = response["choices"][0]["text"].strip()
-    local_config["context"] += response_text
-    msg = Message(response_text)
+    print(local_config["completion"]["prompt"])
+    try:
+        response = openai.Completion.create(**local_config["completion"])
+        response_text = response["choices"][0]["text"].strip()
+        local_config["context"] += response_text
+        msg = Message(response_text)
+    except openai.error.InvalidRequestError as e:
+        logger.opt(colors=True).critical(f"Tokens太长！已重置上下文。\n错误信息：{e}")
+        local_config["context"] = ""
+        msg = Message("Tokens Error Occured!")
     await catch_chat_str.finish(msg)
 
 
@@ -129,8 +141,23 @@ async def send_image_msg(args: Message = CommandArg()):
 
 
 @catch_clear_str.handle()
-async def send_clear_msg(args: Message = CommandArg()):
-    default_config["context"] = ""
+async def group_clear_msg(gm: GroupMessageEvent, args: Message = CommandArg()):
+    group_id = gm.group_id
+    session_id = f"group_{group_id}"
+    if not group_sessions.get(session_id):
+        group_sessions[session_id] = default_config.copy()
+    group_sessions[session_id]["context"] = ""
+    msg = Message("cleared all contexts! 已清除所有上下文！")
+    await catch_clear_str.finish(msg)
+
+
+@catch_clear_str.handle()
+async def private_clear_msg(pm: PrivateMessageEvent, args: Message = CommandArg()):
+    user_id = pm.user_id  # or event.get_user_id()
+    session_id = f"private_{user_id}"
+    if not private_sessions.get(session_id):
+        private_sessions[session_id] = default_config.copy()
+    private_sessions[session_id]["context"] = ""
     msg = Message("cleared all contexts! 已清除所有上下文！")
     await catch_clear_str.finish(msg)
 
@@ -180,6 +207,7 @@ async def load(args: Message = CommandArg()):
     await catch_clear_str.finish(msg)
 
 
+@catch_help_str.handle()
 async def send_help_msg(args: Message = CommandArg()):
     msg = Message("""
 欢迎使用chatbot QQ机器人！
@@ -224,4 +252,5 @@ async def send_test_msg(bot: Bot, event: Event, pm: PrivateMessageEvent, args: M
     #         file="https://cdn.luogu.com.cn/fe/logo.png", type_="flash"
     #     )
     # )
+    await catch_test_str.send(Message("[CQ:dice,value=1]"))
     await catch_test_str.finish()

@@ -23,7 +23,7 @@ default_config = {
         # in the response. Increasing this number can make the response \
         # longer and more detailed, but it can also make the model slower.
         # The maximum number of tokens to generate in the completion.
-        "max_tokens": 4000,
+        "max_tokens": 3000,
         # # An alternative to sampling with temperature, called nucleus sampling,
         # # where the model considers the results of the tokens with top_p probability mass.
         # # So 0.1 means only the tokens comprising the top 10% probability mass are considered.
